@@ -2,18 +2,18 @@ import random
 from colorama import Fore, Style
 
 def build_game_board(board):
-    for _ in range(20):
-        board.append(["O"] * 20)
+    for _ in range(5):
+        board.append(["O"] * 5)
 
 def print_game_boards(board1, board2, shots1, shots2):
     max_row_width = len(str(len(board1) - 1))
 
     # Imprime las coordenadas en la parte superior de ambos tableros
     print(" " * (max_row_width + 1), end="")
-    for i in range(20):
+    for i in range(5):
         print(f"{i:2}", end=" ")
     print("    ", end="")
-    for i in range(20):
+    for i in range(5):
         print(f"{i:2}", end=" ")
     print()
 
@@ -88,16 +88,16 @@ def can_place_ship_vertically(board, row, col, size):
 
 def check_victory(board):
     verdad = True
-    for i in range(20):
-        for k  in range(20):
+    for i in range(5):
+        for k  in range(5):
             if(board[i][k]==Fore.BLUE + "Y" + Style.RESET_ALL):
                 verdad = False
     return verdad
 
 def bot_player(board, shots):
     while True:
-        row2 = random.randint(0, 19)
-        col2 = random.randint(0, 19)
+        row2 = random.randint(0, 4)
+        col2 = random.randint(0, 4)
         if (row2, col2) not in shots:
             return row2, col2
 
@@ -121,8 +121,8 @@ def main():
             col1 = int(input("Jugador 1: Ingresa la columna para tu ataque (0-19): "))
 
             if (
-                0 <= row1 < 20
-                and 0 <= col1 < 20
+                0 <= row1 < 5
+                and 0 <= col1 < 5
             ):
                 if game_board1[row1][col1] == "Y":
                     print("¡Jugador 1 ha golpeado un barco!")
