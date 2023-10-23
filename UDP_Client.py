@@ -2,7 +2,7 @@ import socket
 import json
 from colorama import Fore, Style
 import random
-
+import sys
 
 serverAddressPort = ("127.0.0.1", 20001)
 bufferSize = 1024
@@ -167,7 +167,7 @@ def bot_player(board, shots):
         col2 = random.randint(0, 4)
         if (row2, col2) not in shots:
             return row2, col2
-
+verdade = True
 while True:
     while True:
         try:
@@ -200,9 +200,14 @@ while True:
         # Imprimir el JSON recibido
         print("Mensaje del servidor:")
         print(json.dumps(received_data, indent=4))
+        seleccion = input("Desea partida con BOT(1) o jugador (0): ")
+        if seleccion == 1:
+            print("Eligio partida con BOT")
+        if seleccion == 0:
+            print("Eligio partida con otro jugador 1v1, esperando conexion del otro jugador...")
         mes1 = {
                         "action": "s",
-                        "bot": 0,
+                        "bot": seleccion,
                         "position": []  # Establece las coordenadas jugadas por el usuario
                         }
         json_message1 = json.dumps(mes1)
@@ -211,13 +216,16 @@ while True:
         bytesToSend1 = json_message1.encode()
 
         UDPClientSocket.sendto(bytesToSend1, serverAddressPort)
+        #Enviada solicitud de partida con BOT o Player
+
+
         msgFromServer1, serverAddress = UDPClientSocket.recvfrom(bufferSize)
         print("Segundo mensaje del servidor: (deberia contener s en action)")
         received_data2 = json.loads(msgFromServer1.decode())
         print(json.dumps(received_data2, indent=4))
         if received_data2["action"]=="s":
             if received_data2["status"]==1:
-                print("Respuesta pulenta todo bn!")
+                print("Lista la partida.")
             else:
                 print("Error1!!!")
         else:
@@ -265,6 +273,7 @@ while True:
                 game_board1 = []
                 game_board2 = []
                 build_game_board(game_board1)
+                build_game_board(game_board2)
                 place_ship(game_board1, 3, Fore.BLUE + "Y" + Style.RESET_ALL,MandarBarquitos["ships"]["p"])
                 place_ship(game_board1, 2, Fore.BLUE + "Y" + Style.RESET_ALL,MandarBarquitos["ships"]["b"])
                 place_ship(game_board1, 1, Fore.BLUE + "Y" + Style.RESET_ALL,MandarBarquitos["ships"]["s"])
@@ -274,6 +283,14 @@ while True:
                         print_game_boards(game_board1, game_board2, shots1, shots2)
                         turnomsg, serverAddress = UDPClientSocket.recvfrom(bufferSize)
                         turno1 = json.loads(turnomsg.decode())
+                        if turno1["action"] == "l":
+                            print("Perdio el juego!")
+                            sys.exit()
+                            break
+                        if turno1["action"] == "w":
+                            print("gano el juego!")
+                            sys.exit()
+                            break
                         if turno1["action"] == "t" and turno1["status"] == 1:
                             try:
                                 row1 = int(input("Jugador 1: Ingresa la fila para tu ataque (0-19): "))
@@ -284,33 +301,32 @@ while True:
                                     "ships": "",
                                     "position": [row1,col1]
                                 }
-                                ata2 = ataqueJson.encode()
-                                UDPClientSocket.sendto(ata2, serverAddressPort)
+                                ata2 = json.dumps(ataqueJson)
+                                atacc2 = ata2.encode()
+                                UDPClientSocket.sendto(str.encode(ata2), serverAddressPort)
                                 turnomsg1, serverAddress = UDPClientSocket.recvfrom(bufferSize)
                                 jsonataque = json.loads(turnomsg1.decode())
                                 if jsonataque["action"] == "a" and jsonataque["status"] == 1 and jsonataque["position"] == [row1,col1]:
                                     print("¡Jugador 1 ha golpeado un barco!")
+                                    print(jsonataque)
                                     game_board1[row1][col1] = Fore.RED + "X" + Style.RESET_ALL
                                 elif jsonataque["action"] == "a" and jsonataque["status"] == 0 and jsonataque["position"] == [row1,col1]:
                                     print("¡Jugador 1 ha fallado!")
+                                    print(jsonataque)
                                     game_board1[row1][col1] = Fore.GREEN + "X" + Style.RESET_ALL
                                 else:
-                                    print("Respuesta extranaña")
+                                    print("Respuesta extranaña",jsonataque)
                                 shots1.append((row1, col1))
-                                victoria, serverAddress = UDPClientSocket.recvfrom(bufferSize)
-                                victory = json.loads(victoria.decode())
-                                if victory["action"] == "w":
-                                    print("Jugador 1 gana. ¡Felicidades!")
-                                    break
-
-                                else:
-                                    print("Coordenadas fuera de rango. Deben estar entre 0 y 19.")
                             except ValueError:
                                 print("Entrada no válida. Ingresa un número entre 0 y 19.")
+
+
                         elif turno1["action"] == "t" and turno1["status"] == 0:
                             print_game_boards(game_board1, game_board2, shots1, shots2)
                             ataqueBot, serverAddress = UDPClientSocket.recvfrom(bufferSize)
                             jsonataqueJson = json.loads(ataqueBot.decode())
+                            if turno1["action"] == "t" and turno1["status"] == 0 and seleccion == 0:
+                                print("Esperando ataque del oponente...")
                             if jsonataqueJson["action"] == "a":
                                 row2 = jsonataqueJson["position"][0]
                                 col2 = jsonataqueJson["position"][1]
@@ -324,18 +340,23 @@ while True:
                                 game_board2[row2][col2] = Fore.GREEN + "X" + Style.RESET_ALL
 
                             shots2.append((row2, col2))
-                            victoria, serverAddress = UDPClientSocket.recvfrom(bufferSize)
-                            victory = json.loads(victoria.decode())
-                            if victory["action"] == "w":
-                                print("Jugador 2 (bot) gana. ¡Felicidades!")
-                                break
                             print_game_boards(game_board1, game_board2, shots1, shots2)
                         else:
                             print("Otro mensaje recibido: ",turno1)
     except json.JSONDecodeError:
         print("Error: El mensaje recibido no es un JSON válido.")
-    if(verdad):
-        buildear = input("Desea enviar posicion barcos al azar(si/no)?: ")
+    finally:
+        jsonDisconnect = {
+                        "action": "d",
+                        "bot": "",
+                        "ships": "",  # Establece las coordenadas jugadas por el usuario
+                        "position": ""
+                        }
+        dissconnected = json.dumps(jsonDisconnect)
+
+        # Codificar la cadena JSON como bytes
+        dsc = dissconnected.encode()
+        UDPClientSocket.sendto(dsc, serverAddressPort)
         #if (buildear == "si"):
 # Cerrar el socket del cliente cuando hayas terminado de usarlo
 UDPClientSocket.close()

@@ -3,6 +3,7 @@ import json
 import random
 from colorama import Fore, Style
 import time
+import sys
 
 localIP = "127.0.0.1"
 localPort = 20001
@@ -92,8 +93,8 @@ def place_ship(board, size, symbol,bot):
         col = random.randint(0, len(board[0]) - 1)
         orientation = random.choice(["horizontal", "vertical"]) """
 
-        row = bot[0]
-        col = bot[1]
+        row = bot[1]
+        col = bot[0]
 
         if bot[2] == 0:
             orientation = "vertical"
@@ -234,6 +235,8 @@ while True:
                         received_data2 = json.loads(message2)
                         if "action" in received_data2 and "bot" in received_data2 and "ships" in received_data2:
                             print("Barcos recibidos, json: ")
+                            PedirBarquitos1 = json.dumps(PedirBarquitos)
+                            UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
                             print(json.dumps(received_data2, indent=4))
                             action2 = received_data2["action"]
                             bot2 = received_data2["bot"]
@@ -310,31 +313,39 @@ while True:
                                             ataque2 = json.loads(ataque1)
                                             if "action" in ataque2 and "position" in ataque2:
                                                 if ataque2["action"] == "a":
-                                                    row1 = ataque2["position"][1]
-                                                    col1 = ataque2["position"][0]
+                                                    row1 = ataque2["position"][0]
+                                                    col1 = ataque2["position"][1]
+                                                    print("Coordenadas recibidas: ",ataque2["position"][1])
+                                                    print("Coordenadas recibibidas 2:",ataque2["position"][0])
+                                                elif ataque2["action"] == "d":
+                                                    print("El usuario de desconecto.")
+                                                    sys.exit()
                                             """ row1 = int(input("Jugador 1: Ingresa la fila para tu ataque (0-19): "))
                                             col1 = int(input("Jugador 1: Ingresa la columna para tu ataque (0-19): ")) """
 
-                                            if ( 
+                                            if( 
                                                 0 <= row1 < 5 
                                                 and 0 <= col1 < 5
                                             ):
-                                                if game_board1[row1][col1] == "Y":
+                                                acertado["position"] = [row1,col1]
+                                                errado["position"] = [row1,col1]
+                                                if game_board1[row1][col1] == Fore.BLUE + "Y" + Style.RESET_ALL:
                                                     print("¡Jugador 1 ha golpeado un barco!")
                                                     game_board1[row1][col1] = Fore.RED + "X" + Style.RESET_ALL
                                                     acertado1 = json.dumps(acertado)
-                                                    UDPServerSocket.sendto(str.encode(acertado1, address1))
+                                                    UDPServerSocket.sendto(str.encode(acertado1), address1)
                                                 else:
                                                     print("¡Jugador 1 ha fallado!")
                                                     game_board1[row1][col1] = Fore.GREEN + "X" + Style.RESET_ALL
                                                     errado1 = json.dumps(errado)
-                                                    UDPServerSocket.sendto(str.encode(errado1, address1))
+                                                    UDPServerSocket.sendto(str.encode(errado1), address1)
                                                 shots1.append((row1, col1))
 
                                                 if check_victory(game_board1):
                                                     print("Jugador 1 gana. ¡Felicidades!")
                                                     gano1 = json.dumps(gano)
-                                                    UDPServerSocket.sendto(str.encode(gano1, address1))
+                                                    UDPServerSocket.sendto(str.encode(gano1), address1)
+                                                    sys.exit()
                                                     break
 
                                             else:
@@ -348,22 +359,24 @@ while True:
                                         row2, col2 = bot_player(game_board2, shots2)
                                         turnoEn = json.dumps(turnoEnemigo)
                                         UDPServerSocket.sendto(str.encode(turnoEn), address1)
-                                        if game_board2[row2][col2] == "Y":
+                                        acertado["position"] = [row2,col2]
+                                        errado["position"] = [row2,col2]
+                                        if game_board2[row2][col2] == Fore.BLUE + "Y" + Style.RESET_ALL:
                                             print("¡Jugador 2 ha golpeado un barco!")
                                             acertado1 = json.dumps(acertado)
-                                            UDPServerSocket.sendto(str.encode(acertado1, address1))
+                                            UDPServerSocket.sendto(str.encode(acertado1), address1)
                                             game_board2[row2][col2] = Fore.RED + "X" + Style.RESET_ALL
                                         else:
                                             print("¡Jugador 2 ha fallado!")
                                             game_board2[row2][col2] = Fore.GREEN + "X" + Style.RESET_ALL
                                             errado1 = json.dumps(errado)
-                                            UDPServerSocket.sendto(str.encode(errado1, address1))
+                                            UDPServerSocket.sendto(str.encode(errado1), address1)
                                         shots2.append((row2, col2))
 
                                         if check_victory(game_board2):
                                             print("Jugador 2 (bot) gana. ¡Felicidades!")
                                             perdio1 = json.dumps(perdio)
-                                            UDPServerSocket.sendto(str.encode(perdio1, address1))
+                                            UDPServerSocket.sendto(str.encode(perdio1), address1)
                                             break
                                         print_game_boards(game_board1, game_board2, shots1, shots2)
                                 except Exception as error:
