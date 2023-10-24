@@ -310,11 +310,11 @@ while True:
                                 if jsonataque["action"] == "a" and jsonataque["status"] == 1 and jsonataque["position"] == [row1,col1]:
                                     print("¡Jugador 1 ha golpeado un barco!")
                                     print(jsonataque)
-                                    game_board1[row1][col1] = Fore.RED + "X" + Style.RESET_ALL
+                                    game_board2[row1][col1] = Fore.RED + "X" + Style.RESET_ALL
                                 elif jsonataque["action"] == "a" and jsonataque["status"] == 0 and jsonataque["position"] == [row1,col1]:
                                     print("¡Jugador 1 ha fallado!")
                                     print(jsonataque)
-                                    game_board1[row1][col1] = Fore.GREEN + "X" + Style.RESET_ALL
+                                    game_board2[row1][col1] = Fore.GREEN + "X" + Style.RESET_ALL
                                 else:
                                     print("Respuesta extranaña",jsonataque)
                                 shots1.append((row1, col1))
@@ -333,12 +333,12 @@ while True:
                                 col2 = jsonataqueJson["position"][1]
                             else:
                                 print("mensaje raro 2")
-                            if game_board2[row2][col2] == "Y":
+                            if game_board1[row2][col2] == "Y":
                                 print("¡Jugador 2 ha golpeado un barco!")
-                                game_board2[row2][col2] = Fore.RED + "X" + Style.RESET_ALL
+                                game_board1[row2][col2] = Fore.RED + "X" + Style.RESET_ALL
                             else:
                                 print("¡Jugador 2 ha fallado!")
-                                game_board2[row2][col2] = Fore.GREEN + "X" + Style.RESET_ALL
+                                game_board1[row2][col2] = Fore.GREEN + "X" + Style.RESET_ALL
 
                             shots2.append((row2, col2))
                             print_game_boards(game_board1, game_board2, shots1, shots2)
