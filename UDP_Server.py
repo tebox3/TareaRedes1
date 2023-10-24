@@ -5,7 +5,7 @@ from colorama import Fore, Style
 import time
 import sys
 
-localIP = "127.0.0.1"
+localIP = "0.0.0.0"
 localPort = 20001
 bufferSize = 1024
 botSelect = True
@@ -211,9 +211,11 @@ while True:
                     action1 = received_data1["action"]
                     bot1 = received_data1["bot"]
                     print("Received action1:", action1)
+                    print("bot received: ", bot1)
                     if bot1 == 0:
                         botSelect = False
                     if action1 == "s" and bot1 == 1:
+                        print("1")
                         status = 1
                         response_data1 = {
                         "action": action1,
@@ -221,6 +223,7 @@ while True:
                         "position": []  # Establece las coordenadas jugadas por el usuario
                         }
                         # Enviar la respuesta al cliente
+                        print("1")
                         response_message1 = json.dumps(response_data1)
                         UDPServerSocket.sendto(str.encode(response_message1), address1)
                         time.sleep(2)
@@ -229,6 +232,7 @@ while True:
                         "status": 1,
                         "position": []  # Establece las coordenadas jugadas por el usuario
                         }
+                        print("1")
                         PedirBarquitos1 = json.dumps(PedirBarquitos)
                         UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
                         #   Espera respuesta con posiciones barcos
@@ -410,12 +414,17 @@ while True:
 
                             # Enviar la respuesta al cliente
                             UDPServerSocket.sendto(str.encode(resP22), direccionP2)
+                            print("Ambos jugadores conectados al servidor!")
                             #Esperando "S" de p2
                             p3 = UDPServerSocket.recvfrom(bufferSize)
                             p33 = p3[0].decode()
                             p333 = json.loads(p22)
-                            if "action" in p222:
-                                if p222["action"] == "s" and p222["status"] == 0:
+                            print(p333)
+                            print(p3[1])
+                            if "action" in p333:
+                                print("22")
+                                if p333["action"] == "s" and p333["bot"] == 0:
+                                    print("22")
                                     response_data1 = {
                                         "action": "s",
                                         "status": 1,
@@ -657,32 +666,6 @@ while True:
                                         except ValueError:
                                             print("Entrada no válida. Ingresa un número entre 0 y 19.")
 
-                                        print_game_boards(game_board1, game_board2, shots1, shots2)
-                                        # Turno del (Jugador 2)
-                                        row2, col2 = bot_player(game_board2, shots2)
-                                        turnoEn = json.dumps(turnoEnemigo)
-                                        UDPServerSocket.sendto(str.encode(turnoEn), address1)
-                                        acertado["position"] = [row2,col2]
-                                        errado["position"] = [row2,col2]
-                                        if game_board2[row2][col2] == Fore.BLUE + "Y" + Style.RESET_ALL:
-                                            print("¡Jugador 2 ha golpeado un barco!")
-                                            acertado1 = json.dumps(acertado)
-                                            UDPServerSocket.sendto(str.encode(acertado1), address1)
-                                            game_board2[row2][col2] = Fore.RED + "X" + Style.RESET_ALL
-                                        else:
-                                            print("¡Jugador 2 ha fallado!")
-                                            game_board2[row2][col2] = Fore.GREEN + "X" + Style.RESET_ALL
-                                            errado1 = json.dumps(errado)
-                                            UDPServerSocket.sendto(str.encode(errado1), address1)
-                                        shots2.append((row2, col2))
-
-                                        if check_victory(game_board2):
-                                            print("Jugador 2 (bot) gana. ¡Felicidades!")
-                                            perdio1 = json.dumps(perdio)
-                                            gano1 = json.dumps(gano)
-                                            UDPServerSocket.sendto(str.encode(perdio1), address1)
-                                            UDPServerSocket.sendto(str.encode(gano1), direccionP2)
-                                            break
                                         print_game_boards(game_board1, game_board2, shots1, shots2)
                                 except Exception as error:
                                     print("Error: ", error)

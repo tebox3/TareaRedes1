@@ -200,7 +200,7 @@ while True:
         # Imprimir el JSON recibido
         print("Mensaje del servidor:")
         print(json.dumps(received_data, indent=4))
-        seleccion = input("Desea partida con BOT(1) o jugador (0): ")
+        seleccion = int(input("Desea partida con BOT(1) o jugador (0): "))
         if seleccion == 1:
             print("Eligio partida con BOT")
         if seleccion == 0:
@@ -214,8 +214,9 @@ while True:
 
         # Codificar la cadena JSON como bytes
         bytesToSend1 = json_message1.encode()
-
+        print("Enviando seleccion")
         UDPClientSocket.sendto(bytesToSend1, serverAddressPort)
+        print("enviada seleccion")
         #Enviada solicitud de partida con BOT o Player
 
 
