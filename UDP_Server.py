@@ -4,7 +4,7 @@ import random
 from colorama import Fore, Style
 import time
 import sys
-
+import traceback
 localIP = "0.0.0.0"
 localPort = 20001
 bufferSize = 1024
@@ -418,7 +418,7 @@ while True:
                             #Esperando "S" de p2
                             p3 = UDPServerSocket.recvfrom(bufferSize)
                             p33 = p3[0].decode()
-                            p333 = json.loads(p22)
+                            p333 = json.loads(p33)
                             print(p333)
                             print(p3[1])
                             if "action" in p333:
@@ -536,8 +536,9 @@ while True:
                                     }
                                     while True:
                                         turnoAc = json.dumps(turnoActual)
+                                        turnoEn2 = json.dumps(turnoEnemigo)
                                         UDPServerSocket.sendto(str.encode(turnoAc), address1)
-                                        UDPServerSocket.sendto(str.encode(turnoEnemigo), direccionP2)
+                                        UDPServerSocket.sendto(str.encode(turnoEn2), direccionP2)
                                         print_game_boards(game_board1, game_board2, shots1, shots2)
                                         try:
                                             while True:
@@ -602,7 +603,7 @@ while True:
 
                                         # Turno del (Jugador 2)
 
-                                        UDPServerSocket.sendto(str.encode(turnoEnemigo), address1)
+                                        UDPServerSocket.sendto(str.encode(turnoEn2), address1)
                                         UDPServerSocket.sendto(str.encode(turnoAc), direccionP2)
                                         print_game_boards(game_board1, game_board2, shots1, shots2)
                                         try:
@@ -669,6 +670,7 @@ while True:
                                         print_game_boards(game_board1, game_board2, shots1, shots2)
                                 except Exception as error:
                                     print("Error: ", error)
+                                    traceback.print_exc()
                                 UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
                                 
                         else:
