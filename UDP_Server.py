@@ -439,19 +439,24 @@ while True:
                         PedirBarquitos1 = json.dumps(PedirBarquitos)
                         UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
                         #   Espera respuesta con posiciones barcos de p1
-                        res2 = UDPServerSocket.recvfrom(bufferSize)
-                        message2 = res2[0].decode()
-                        received_data2 = json.loads(message2)
-                        UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
+                        while True:
+                            res2 = UDPServerSocket.recvfrom(bufferSize)
+                            message2 = res2[0].decode()
+                            received_data2 = json.loads(message2)
+                            if res2[1] == address1:
+                                UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
+                                break
 
                         #Envia consulta por barcos a p2
                         UDPServerSocket.sendto(str.encode(PedirBarquitos1), direccionP2)
                         #   Espera respuesta con posiciones barcos de p2
-                        resp2 = UDPServerSocket.recvfrom(bufferSize)
-                        messagep2 = resp2[0].decode()
-                        received_datap2 = json.loads(messagep2)
-                        UDPServerSocket.sendto(str.encode(PedirBarquitos1), direccionP2)
-
+                        while True:
+                            resp2 = UDPServerSocket.recvfrom(bufferSize)
+                            messagep2 = resp2[0].decode()
+                            received_datap2 = json.loads(messagep2)
+                            if resp2[1] == direccionP2:
+                                UDPServerSocket.sendto(str.encode(PedirBarquitos1), direccionP2)
+                                break
                         if "action" in received_data2 and "bot" in received_data2 and "ships" in received_data2:
                             print("Json de barcos correcto de P1")
                         if "action" in received_datap2 and "bot" in received_datap2 and "ships" in received_datap2:
@@ -547,10 +552,12 @@ while True:
                                                 elif ataque2["action"] == "d":
                                                     print("El usuario de desconecto.")
                                                     sys.exit()
+                                                else:
+                                                    print("Caso extraño: ",ataque2)
                                             """ row1 = int(input("Jugador 1: Ingresa la fila para tu ataque (0-19): "))
                                             col1 = int(input("Jugador 1: Ingresa la columna para tu ataque (0-19): ")) """
 
-                                            if( 
+                                            if(  
                                                 0 <= row1 < 5 
                                                 and 0 <= col1 < 5
                                             ):
@@ -561,11 +568,13 @@ while True:
                                                     game_board1[row1][col1] = Fore.RED + "X" + Style.RESET_ALL
                                                     acertado1 = json.dumps(acertado)
                                                     UDPServerSocket.sendto(str.encode(acertado1), address1)
+                                                    UDPServerSocket.sendto(str.encode(acertado1), direccionP2)
                                                 else:
                                                     print("¡Jugador 1 ha fallado!")
                                                     game_board1[row1][col1] = Fore.GREEN + "X" + Style.RESET_ALL
                                                     errado1 = json.dumps(errado)
                                                     UDPServerSocket.sendto(str.encode(errado1), address1)
+                                                    UDPServerSocket.sendto(str.encode(errado1), direccionP2)
                                                 shots1.append((row1, col1))
 
                                                 if check_victory(game_board1):
@@ -582,7 +591,74 @@ while True:
 
                                         print_game_boards(game_board1, game_board2, shots1, shots2)
 
-                                        # Turno del bot (Jugador 2)
+                                        # Turno del (Jugador 2)
+
+                                        UDPServerSocket.sendto(str.encode(turnoEnemigo), address1)
+                                        UDPServerSocket.sendto(str.encode(turnoAc), direccionP2)
+                                        print_game_boards(game_board1, game_board2, shots1, shots2)
+                                        try:
+                                            while True:
+                                                ataque = UDPServerSocket.recvfrom(bufferSize)
+                                                if ataque[1] == direccionP2:
+                                                    print("Llego el ataque de p2")
+                                                    break
+                                                elif ataque[1] == address1:
+                                                    print("Error, llego ataque de P1, es el turno de P2, esperando nuevamente.")
+                                                else:
+                                                    print("Llego otro mensaje: ",json.loads(ataque[0].decode()))
+                                                    print("Esperando un mensaje correcto de p2")
+                                            ataque1 = ataque[0].decode()
+                                            ataque2 = json.loads(ataque1)
+                                            if "action" in ataque2 and "position" in ataque2:
+                                                if ataque2["action"] == "a":
+                                                    row2 = ataque2["position"][0]
+                                                    col2 = ataque2["position"][1]
+                                                    print("Coordenadas recibidas row: ",ataque2["position"][1])
+                                                    print("Coordenadas recibibidas col:",ataque2["position"][0])
+                                                elif ataque2["action"] == "d":
+                                                    print("El usuario de desconecto.")
+                                                    sys.exit()
+                                                else:
+                                                    print("Caso extraño: ",ataque2)
+                                            """ row1 = int(input("Jugador 1: Ingresa la fila para tu ataque (0-19): "))
+                                            col1 = int(input("Jugador 1: Ingresa la columna para tu ataque (0-19): ")) """
+
+                                            if(  
+                                                0 <= row1 < 5 
+                                                and 0 <= col1 < 5
+                                            ):
+                                                acertado["position"] = [row2,col2]
+                                                errado["position"] = [row2,col2]
+                                                if game_board2[row2][col2] == Fore.BLUE + "Y" + Style.RESET_ALL:
+                                                    print("¡Jugador 2 ha golpeado un barco!")
+                                                    game_board2[row2][col2] = Fore.RED + "X" + Style.RESET_ALL
+                                                    acertado1 = json.dumps(acertado)
+                                                    UDPServerSocket.sendto(str.encode(acertado1), direccionP2)
+                                                    UDPServerSocket.sendto(str.encode(acertado1), address1)
+                                                else:
+                                                    print("¡Jugador 2 ha fallado!")
+                                                    game_board2[row2][col2] = Fore.GREEN + "X" + Style.RESET_ALL
+                                                    errado1 = json.dumps(errado)
+                                                    UDPServerSocket.sendto(str.encode(errado1), direccionP2)
+                                                    UDPServerSocket.sendto(str.encode(errado1), address1)
+                                                shots1.append((row2, col2))
+
+                                                if check_victory(game_board2):
+                                                    print("Jugador 2 gana. ¡Felicidades!")
+                                                    gano1 = json.dumps(gano)
+                                                    UDPServerSocket.sendto(str.encode(gano1), direccionP2)
+                                                    UDPServerSocket.sendto(str.encode(perdio1), address1)
+                                                    perdio1 = json.dumps(perdio)
+                                                    sys.exit()
+                                                    break
+
+                                            else:
+                                                print("Coordenadas fuera de rango. Deben estar entre 0 y 19.")
+                                        except ValueError:
+                                            print("Entrada no válida. Ingresa un número entre 0 y 19.")
+
+                                        print_game_boards(game_board1, game_board2, shots1, shots2)
+                                        # Turno del (Jugador 2)
                                         row2, col2 = bot_player(game_board2, shots2)
                                         turnoEn = json.dumps(turnoEnemigo)
                                         UDPServerSocket.sendto(str.encode(turnoEn), address1)
@@ -603,7 +679,9 @@ while True:
                                         if check_victory(game_board2):
                                             print("Jugador 2 (bot) gana. ¡Felicidades!")
                                             perdio1 = json.dumps(perdio)
+                                            gano1 = json.dumps(gano)
                                             UDPServerSocket.sendto(str.encode(perdio1), address1)
+                                            UDPServerSocket.sendto(str.encode(gano1), direccionP2)
                                             break
                                         print_game_boards(game_board1, game_board2, shots1, shots2)
                                 except Exception as error:
