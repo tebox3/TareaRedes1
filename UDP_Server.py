@@ -8,7 +8,7 @@ import sys
 localIP = "127.0.0.1"
 localPort = 20001
 bufferSize = 1024
-
+botSelect = True
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.bind((localIP, localPort))
 print("UDP server up and listening")
@@ -169,6 +169,7 @@ def bot_player(board, shots):
         if (row2, col2) not in shots:
             return row2, col2
 
+
 while True:
     bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
     message = bytesAddressPair[0].decode()
@@ -210,7 +211,9 @@ while True:
                     action1 = received_data1["action"]
                     bot1 = received_data1["bot"]
                     print("Received action1:", action1)
-                    if action1 == "s" and bot1 == 0:
+                    if bot1 == 0:
+                        botSelect = False
+                    if action1 == "s" and bot1 == 1:
                         status = 1
                         response_data1 = {
                         "action": action1,
@@ -317,6 +320,230 @@ while True:
                                                     col1 = ataque2["position"][1]
                                                     print("Coordenadas recibidas: ",ataque2["position"][1])
                                                     print("Coordenadas recibibidas 2:",ataque2["position"][0])
+                                                elif ataque2["action"] == "d":
+                                                    print("El usuario de desconecto.")
+                                                    sys.exit()
+                                            """ row1 = int(input("Jugador 1: Ingresa la fila para tu ataque (0-19): "))
+                                            col1 = int(input("Jugador 1: Ingresa la columna para tu ataque (0-19): ")) """
+
+                                            if( 
+                                                0 <= row1 < 5 
+                                                and 0 <= col1 < 5
+                                            ):
+                                                acertado["position"] = [row1,col1]
+                                                errado["position"] = [row1,col1]
+                                                if game_board1[row1][col1] == Fore.BLUE + "Y" + Style.RESET_ALL:
+                                                    print("¡Jugador 1 ha golpeado un barco!")
+                                                    game_board1[row1][col1] = Fore.RED + "X" + Style.RESET_ALL
+                                                    acertado1 = json.dumps(acertado)
+                                                    UDPServerSocket.sendto(str.encode(acertado1), address1)
+                                                else:
+                                                    print("¡Jugador 1 ha fallado!")
+                                                    game_board1[row1][col1] = Fore.GREEN + "X" + Style.RESET_ALL
+                                                    errado1 = json.dumps(errado)
+                                                    UDPServerSocket.sendto(str.encode(errado1), address1)
+                                                shots1.append((row1, col1))
+
+                                                if check_victory(game_board1):
+                                                    print("Jugador 1 gana. ¡Felicidades!")
+                                                    gano1 = json.dumps(gano)
+                                                    UDPServerSocket.sendto(str.encode(gano1), address1)
+                                                    sys.exit()
+                                                    break
+
+                                            else:
+                                                print("Coordenadas fuera de rango. Deben estar entre 0 y 19.")
+                                        except ValueError:
+                                            print("Entrada no válida. Ingresa un número entre 0 y 19.")
+
+                                        print_game_boards(game_board1, game_board2, shots1, shots2)
+
+                                        # Turno del bot (Jugador 2)
+                                        row2, col2 = bot_player(game_board2, shots2)
+                                        turnoEn = json.dumps(turnoEnemigo)
+                                        UDPServerSocket.sendto(str.encode(turnoEn), address1)
+                                        acertado["position"] = [row2,col2]
+                                        errado["position"] = [row2,col2]
+                                        if game_board2[row2][col2] == Fore.BLUE + "Y" + Style.RESET_ALL:
+                                            print("¡Jugador 2 ha golpeado un barco!")
+                                            acertado1 = json.dumps(acertado)
+                                            UDPServerSocket.sendto(str.encode(acertado1), address1)
+                                            game_board2[row2][col2] = Fore.RED + "X" + Style.RESET_ALL
+                                        else:
+                                            print("¡Jugador 2 ha fallado!")
+                                            game_board2[row2][col2] = Fore.GREEN + "X" + Style.RESET_ALL
+                                            errado1 = json.dumps(errado)
+                                            UDPServerSocket.sendto(str.encode(errado1), address1)
+                                        shots2.append((row2, col2))
+
+                                        if check_victory(game_board2):
+                                            print("Jugador 2 (bot) gana. ¡Felicidades!")
+                                            perdio1 = json.dumps(perdio)
+                                            UDPServerSocket.sendto(str.encode(perdio1), address1)
+                                            break
+                                        print_game_boards(game_board1, game_board2, shots1, shots2)
+                                except Exception as error:
+                                    print("Error: ", error)
+                                UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
+                                
+                        else:
+                            print("otra cosa recibida")
+                            print("json: ")
+                            print(json.dumps(received_data2, indent=4))
+                    elif action1 == "s" and bot1 == 0: #1V1
+                        status = 1
+                        print("Esperando al otro jugador...")
+                        p2 = UDPServerSocket.recvfrom(bufferSize)
+                        p22 = p2[0].decode()
+                        direccionP2=p2[1]
+                        p222 = json.loads(p22)
+                        if "action" in p222:
+                            if p222["action"] == "c":
+                                resP2 = {
+                                "action": "c",
+                                "status": 1,
+                                "position": []  # Establece las coordenadas jugadas por el usuario
+                            }
+
+                            # Serializar la respuesta como cadena JSON
+                            resP22 = json.dumps(resP2)
+
+                            # Enviar la respuesta al cliente
+                            UDPServerSocket.sendto(str.encode(resP22), direccionP2)
+                            #Esperando "S" de p2
+                            p3 = UDPServerSocket.recvfrom(bufferSize)
+                            p33 = p3[0].decode()
+                            p333 = json.loads(p22)
+                            if "action" in p222:
+                                if p222["action"] == "s" and p222["status"] == 0:
+                                    response_data1 = {
+                                        "action": "s",
+                                        "status": 1,
+                                        "position": []  # Establece las coordenadas jugadas por el usuario
+                                        }
+                                        # Enviar la respuesta al cliente
+                                    response_message1 = json.dumps(response_data1)
+                                    UDPServerSocket.sendto(str.encode(response_message1), address1)
+                                    UDPServerSocket.sendto(str.encode(response_message1), direccionP2)
+                                elif p222["action"] == "s" and p222["status"] == 1:
+                                    print("Error, el player 2 quiere jugar bots pero ya hay un jugador esperando")
+                                else:
+                                    ("Nose que paso, error en json de p2")
+                        
+                        time.sleep(2)
+                        PedirBarquitos = {  
+                        "action": "b",
+                        "status": 1,
+                        "position": []  # Establece las coordenadas jugadas por el usuario
+                        }
+                        PedirBarquitos1 = json.dumps(PedirBarquitos)
+                        UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
+                        #   Espera respuesta con posiciones barcos de p1
+                        res2 = UDPServerSocket.recvfrom(bufferSize)
+                        message2 = res2[0].decode()
+                        received_data2 = json.loads(message2)
+                        UDPServerSocket.sendto(str.encode(PedirBarquitos1), address1)
+
+                        #Envia consulta por barcos a p2
+                        UDPServerSocket.sendto(str.encode(PedirBarquitos1), direccionP2)
+                        #   Espera respuesta con posiciones barcos de p2
+                        resp2 = UDPServerSocket.recvfrom(bufferSize)
+                        messagep2 = resp2[0].decode()
+                        received_datap2 = json.loads(messagep2)
+                        UDPServerSocket.sendto(str.encode(PedirBarquitos1), direccionP2)
+
+                        if "action" in received_data2 and "bot" in received_data2 and "ships" in received_data2:
+                            print("Json de barcos correcto de P1")
+                        if "action" in received_datap2 and "bot" in received_datap2 and "ships" in received_datap2:
+                            print("Json de barcos correcto de P2")
+                            action2 = received_data2["action"]
+                            bot2 = received_data2["bot"]
+                            ships2 = received_data2["ships"]
+                            shipsp2 = received_datap2["ships"]
+                            if action2 == "b" and bot2 == "":
+                                try:
+                                        print("1")
+                                        game_board1 = []
+                                        game_board2 = []
+                                        print("2")
+                                        #game_board2 = []
+                                        build_game_board(game_board1)
+                                        build_game_board(game_board2)
+                                        shots1 = []  # Lista de disparos del Jugador 1
+                                        shots2 = []  # Lista de disparos del Jugador 2
+                                        print("3")
+                                        #build_game_board(game_board2)
+                                        #place_ships(game_board1,bot2)
+                                        #place_ships(game_board2)
+                                        place_ship(game_board1, 3, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["p"]) #3 casillas
+                                        place_ship(game_board1, 2, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["b"]) #2 casillas
+                                        place_ship(game_board1, 1, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["s"]) #1 casillas
+                                        place_ship(game_board2, 3, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["p"]) #3 casillas
+                                        place_ship(game_board2, 2, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["b"]) #2 casillas
+                                        place_ship(game_board2, 1, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["s"]) #1 casillas
+                                        print("Tablero del jugador 1")
+                                        for row in game_board1:
+                                            print(" ".join(row))
+                                        print("Tablero del jugador 2")
+                                        for row in game_board2:
+                                            print(" ".join(row))
+                                except Exception as error:
+                                    print("El arreglo de barcos entregado por el cliente es incorrecto", error)
+                                try:
+                                    turnoActual = {
+                                        "action": "t",
+                                        "status": 1,
+                                        "position": []  # Establece las coordenadas jugadas por el usuario
+                                    }
+                                    turnoEnemigo = {
+                                        "action": "t",
+                                        "status": 0,
+                                        "position": []  # Establece las coordenadas jugadas por el usuario
+                                    }
+                                    acertado = {
+                                        "action": "a",
+                                        "status": 1,
+                                        "position": []  # Establece las coordenadas jugadas por el usuario
+                                    }
+                                    errado = {
+                                        "action": "a",
+                                        "status": 0,
+                                        "position": []  # Establece las coordenadas jugadas por el usuario
+                                    }
+                                    gano = {
+                                        "action": "w",
+                                        "status": 1,
+                                        "position": []  # Establece las coordenadas jugadas por el usuario
+                                    }
+                                    perdio = {
+                                        "action": "l",
+                                        "status": 1,
+                                        "position": []  # Establece las coordenadas jugadas por el usuario
+                                    }
+                                    while True:
+                                        turnoAc = json.dumps(turnoActual)
+                                        UDPServerSocket.sendto(str.encode(turnoAc), address1)
+                                        UDPServerSocket.sendto(str.encode(turnoEnemigo), direccionP2)
+                                        print_game_boards(game_board1, game_board2, shots1, shots2)
+                                        try:
+                                            while True:
+                                                ataque = UDPServerSocket.recvfrom(bufferSize)
+                                                if ataque[1] == address1:
+                                                    print("Llego el ataque de p1")
+                                                    break
+                                                elif ataque[1] == direccionP2:
+                                                    print("Error, llego ataque de P2, es el turno de P1, esperando nuevamente.")
+                                                else:
+                                                    print("Llego otro mensaje: ",json.loads(ataque[0].decode()))
+                                                    print("Esperando un mensaje correcto de p1")
+                                            ataque1 = ataque[0].decode()
+                                            ataque2 = json.loads(ataque1)
+                                            if "action" in ataque2 and "position" in ataque2:
+                                                if ataque2["action"] == "a":
+                                                    row1 = ataque2["position"][0]
+                                                    col1 = ataque2["position"][1]
+                                                    print("Coordenadas recibidas row: ",ataque2["position"][1])
+                                                    print("Coordenadas recibibidas col:",ataque2["position"][0])
                                                 elif ataque2["action"] == "d":
                                                     print("El usuario de desconecto.")
                                                     sys.exit()
