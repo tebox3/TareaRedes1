@@ -4,13 +4,14 @@ from colorama import Fore, Style
 import random
 import sys
 
+#serverAddressPort = ("25.1.8.249", 20001)
+#serverAddressPort = ("25.1.3.172", 20001)
 serverAddressPort = ("127.0.0.1", 20001)
 bufferSize = 1024
-
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 message = {
     "action": "c",  # Puedes cambiar esta acción según lo que necesites
-    "bot": 1,
+    "bot": 0,
     "ships": {
         "p": [],
         "b": [],
@@ -51,6 +52,39 @@ def can_place_ship_horizontally(board, row, col, size):
             return False
     return True
  """
+xArr = [1,3,4]
+yArr = [1,2,4]
+ori = [1,0,0]
+def place_ships3(board):
+    ship_sizes = [3, 2, 1]
+    iss = 0
+    for size in ship_sizes:
+        place_ship3(board, size, Fore.BLUE + "Y" + Style.RESET_ALL, iss)
+        iss=iss+1
+
+def place_ship3(board, size, symbol, mouskerramienta):
+    while True:
+        row = random.randint(0, len(board) - 1)
+        col = random.randint(0, len(board[0]) - 1)
+        orientation = random.choice(["horizontal", "vertical"])
+
+        if orientation == "horizontal":
+            if can_place_ship_horizontally(board, row, col, size):
+                xArr[mouskerramienta]=row
+                yArr[mouskerramienta]=col
+                ori[mouskerramienta]=1
+                for i in range(size):
+                    board[row][col + i] = symbol
+                break
+        else:
+            if can_place_ship_vertically(board, row, col, size):
+                xArr[mouskerramienta]=row
+                yArr[mouskerramienta]=col
+                ori[mouskerramienta]=0
+                for i in range(size):
+                    board[row + i][col] = symbol
+                break
+
 def print_game_boards(board1, board2, shots1, shots2):
     max_row_width = len(str(len(board1) - 1))
 
@@ -235,6 +269,10 @@ while True:
         print("Tercer mensaje del servidor: (deberia contener b en action)")
         received_data3 = json.loads(msgFromServer2.decode())
         print(json.dumps(received_data3, indent=4))
+        game_board1 = []
+        game_board2 = []
+        build_game_board(game_board1)
+        build_game_board(game_board2)
         if received_data3["action"]=="b":
             if received_data3["status"]==1:
                 print("Respuesta solicitando barcos")
@@ -242,19 +280,24 @@ while True:
                 print("Error1!!!")
         else:
                 print("Error2!!!")
-        x1 = 1
-        y1 = 1 
-        x2 = 3
-        y2 = 2
-        x3 = 4
-        y3 = 4  
+        valor1 = 2
+        while True:
+            valor1 = input("Desea agregar los barcos al azar?(1 si, 0 no): ")
+            valor1 = int(valor1)
+            if valor1 == 1 or valor1 == 0:
+                break
+        if valor1 == 1:
+            place_ships3(game_board1)
+            print(xArr)
+            print(yArr)
+            print(ori)
         MandarBarquitos = {
                         "action": "b",
                         "bot": "",
                         "ships": {
-                            "p": [x1,y1,1],
-                            "b": [x2,y2,0],
-                            "s": [x3,y3,0]
+                            "p": [xArr[0],yArr[0],1],
+                            "b": [xArr[1],yArr[1],0],
+                            "s": [xArr[2],yArr[2],0]
                         }  # Establece las coordenadas jugadas por el usuario
                         }
         json_message2 = json.dumps(MandarBarquitos)
@@ -271,10 +314,6 @@ while True:
         if received_data4["action"]=="b":
             if received_data4["status"]==1:
                 print("Barcos aceptados")
-                game_board1 = []
-                game_board2 = []
-                build_game_board(game_board1)
-                build_game_board(game_board2)
                 place_ship(game_board1, 3, Fore.BLUE + "Y" + Style.RESET_ALL,MandarBarquitos["ships"]["p"])
                 place_ship(game_board1, 2, Fore.BLUE + "Y" + Style.RESET_ALL,MandarBarquitos["ships"]["b"])
                 place_ship(game_board1, 1, Fore.BLUE + "Y" + Style.RESET_ALL,MandarBarquitos["ships"]["s"])
@@ -341,7 +380,7 @@ while True:
                                 game_board1[row2][col2] = Fore.GREEN + "X" + Style.RESET_ALL
 
                             shots2.append((row2, col2))
-                            print_game_boards(game_board1, game_board2, shots1, shots2)
+                            #print_game_boards(game_board1, game_board2, shots1, shots2)
                         else:
                             print("Otro mensaje recibido: ",turno1)
     except json.JSONDecodeError:

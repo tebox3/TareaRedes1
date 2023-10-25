@@ -93,13 +93,13 @@ def place_ship(board, size, symbol,bot):
         col = random.randint(0, len(board[0]) - 1)
         orientation = random.choice(["horizontal", "vertical"]) """
 
-        row = bot[1]
-        col = bot[0]
+        row = int(bot[0])
+        col = int(bot[1])
 
-        if bot[2] == 0:
+        if (bot[2] == 0 or bot[2] == "0"):
             orientation = "vertical"
 
-        if bot[2] == 1:
+        if (bot[2] == 1 or bot[2] == "1"):
             orientation = "horizontal"
 
         if orientation == "horizontal":
@@ -185,7 +185,7 @@ while True:
         if "action" in received_data:
             action = received_data["action"]
             print("Received action:", action)
-            if action == "c":
+            if action == "c": #Conectado con cliente
                 status = 1  # Cambia esto según la lógica de tu aplicación
                 # Aquí puedes realizar la verificación de la acción y establecer el valor de "status"
                 # Por ejemplo, puedes verificar si la acción es válida y establecer "status" en 1 (True)
@@ -214,7 +214,7 @@ while True:
                     print("bot received: ", bot1)
                     if bot1 == 0:
                         botSelect = False
-                    if action1 == "s" and bot1 == 1:
+                    if action1 == "s" and int(bot1) == 1:
                         print("1")
                         status = 1
                         response_data1 = {
@@ -247,8 +247,11 @@ while True:
                             print(json.dumps(received_data2, indent=4))
                             action2 = received_data2["action"]
                             bot2 = received_data2["bot"]
+                            if isinstance(bot2, str) and bot2.strip():
+                                bot2 = int(bot2)
                             ships2 = received_data2["ships"]
-                            if action2 == "b" and bot2 == "":
+                            ships2 = {key: [int(value) for value in values] for key, values in ships2.items()}
+                            if action2 == "b" and (bot2 == "1" or bot2 == 1 or bot2 == ""):
                                 try:
                                         print("1")
                                         game_board1 = []
@@ -263,12 +266,12 @@ while True:
                                         #build_game_board(game_board2)
                                         #place_ships(game_board1,bot2)
                                         #place_ships(game_board2)
-                                        place_ship(game_board1, 3, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["p"]) #3 casillas
+                                        place_ship(game_board1, 2, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["p"]) #2 casillas
                                         print("4")
                                         for row in game_board1:
                                             print(" ".join(row))
-                                        place_ship(game_board1, 2, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["b"]) #2 casillas
-                                        place_ship(game_board1, 1, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["s"]) #1 casillas
+                                        place_ship(game_board1, 1, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["b"]) #1 casillas
+                                        place_ship(game_board1, 3, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["s"]) #3 casillas
                                         print("5")
                                         place_ships(game_board2)
                                         print("Tablero del jugador 1")
@@ -320,8 +323,8 @@ while True:
                                             ataque2 = json.loads(ataque1)
                                             if "action" in ataque2 and "position" in ataque2:
                                                 if ataque2["action"] == "a":
-                                                    row1 = ataque2["position"][0]
-                                                    col1 = ataque2["position"][1]
+                                                    row1 = int(ataque2["position"][0])
+                                                    col1 = int(ataque2["position"][1])
                                                     print("Coordenadas recibidas: ",ataque2["position"][1])
                                                     print("Coordenadas recibibidas 2:",ataque2["position"][0])
                                                 elif ataque2["action"] == "d":
@@ -336,7 +339,7 @@ while True:
                                             ):
                                                 acertado["position"] = [row1,col1]
                                                 errado["position"] = [row1,col1]
-                                                if game_board2[row1][col1] == Fore.BLUE + "Y" + Style.RESET_ALL:
+                                                if game_board2[row1][col1] == Fore.BLUE + "Y" + Style.RESET_ALL or game_board2[row1][col1] == Fore.RED + "X" + Style.RESET_ALL:
                                                     print("¡Jugador 1 ha golpeado un barco!")
                                                     game_board2[row1][col1] = Fore.RED + "X" + Style.RESET_ALL
                                                     acertado1 = json.dumps(acertado)
@@ -368,7 +371,7 @@ while True:
                                         UDPServerSocket.sendto(str.encode(turnoEn), address1)
                                         acertado["position"] = [row2,col2]
                                         errado["position"] = [row2,col2]
-                                        if game_board1[row2][col2] == Fore.BLUE + "Y" + Style.RESET_ALL:
+                                        if game_board1[row2][col2] == Fore.BLUE + "Y" + Style.RESET_ALL or game_board1[row1][col1] == Fore.RED + "X" + Style.RESET_ALL:
                                             print("¡Jugador 2 ha golpeado un barco!")
                                             acertado1 = json.dumps(acertado)
                                             UDPServerSocket.sendto(str.encode(acertado1), address1)
@@ -394,7 +397,7 @@ while True:
                             print("otra cosa recibida")
                             print("json: ")
                             print(json.dumps(received_data2, indent=4))
-                    elif action1 == "s" and bot1 == 0: #1V1
+                    elif action1 == "s" and int(bot1) == 0: #1V1
                         status = 1
                         print("Esperando al otro jugador...")
                         p2 = UDPServerSocket.recvfrom(bufferSize)
@@ -423,7 +426,7 @@ while True:
                             print(p3[1])
                             if "action" in p333:
                                 print("22")
-                                if p333["action"] == "s" and p333["bot"] == 0:
+                                if p333["action"] == "s" and (p333["bot"] == 0 or p333["bot"] == "0"):
                                     print("22")
                                     response_data1 = {
                                         "action": "s",
@@ -468,13 +471,15 @@ while True:
                                 break
                         if "action" in received_data2 and "bot" in received_data2 and "ships" in received_data2:
                             print("Json de barcos correcto de P1")
+                            print(received_data2)
                         if "action" in received_datap2 and "bot" in received_datap2 and "ships" in received_datap2:
                             print("Json de barcos correcto de P2")
+                            print(received_datap2)
                             action2 = received_data2["action"]
                             bot2 = received_data2["bot"]
                             ships2 = received_data2["ships"]
                             shipsp2 = received_datap2["ships"]
-                            if action2 == "b" and bot2 == "":
+                            if action2 == "b":
                                 try:
                                         print("1")
                                         game_board1 = []
@@ -489,12 +494,12 @@ while True:
                                         #build_game_board(game_board2)
                                         #place_ships(game_board1,bot2)
                                         #place_ships(game_board2)
-                                        place_ship(game_board1, 3, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["p"]) #3 casillas
-                                        place_ship(game_board1, 2, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["b"]) #2 casillas
-                                        place_ship(game_board1, 1, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["s"]) #1 casillas
-                                        place_ship(game_board2, 3, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["p"]) #3 casillas
-                                        place_ship(game_board2, 2, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["b"]) #2 casillas
-                                        place_ship(game_board2, 1, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["s"]) #1 casillas
+                                        place_ship(game_board1, 2, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["p"]) #3 casillas
+                                        place_ship(game_board1, 1, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["b"]) #2 casillas
+                                        place_ship(game_board1, 3, Fore.BLUE + "Y" + Style.RESET_ALL,ships2["s"]) #1 casillas
+                                        place_ship(game_board2, 2, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["p"]) #3 casillas
+                                        place_ship(game_board2, 1, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["b"]) #2 casillas
+                                        place_ship(game_board2, 3, Fore.BLUE + "Y" + Style.RESET_ALL,shipsp2["s"]) #1 casillas
                                         print("Tablero del jugador 1")
                                         for row in game_board1:
                                             print(" ".join(row))
@@ -553,10 +558,11 @@ while True:
                                                     print("Esperando un mensaje correcto de p1")
                                             ataque1 = ataque[0].decode()
                                             ataque2 = json.loads(ataque1)
+                                            print(ataque2)
                                             if "action" in ataque2 and "position" in ataque2:
                                                 if ataque2["action"] == "a":
-                                                    row1 = ataque2["position"][0]
-                                                    col1 = ataque2["position"][1]
+                                                    row1 = int(ataque2["position"][0])
+                                                    col1 = int(ataque2["position"][1])
                                                     print("Coordenadas recibidas row: ",ataque2["position"][1])
                                                     print("Coordenadas recibibidas col:",ataque2["position"][0])
                                                 elif ataque2["action"] == "d":
@@ -573,7 +579,7 @@ while True:
                                             ):
                                                 acertado["position"] = [row1,col1]
                                                 errado["position"] = [row1,col1]
-                                                if game_board2[row1][col1] == Fore.BLUE + "Y" + Style.RESET_ALL:
+                                                if game_board2[row1][col1] == Fore.BLUE + "Y" + Style.RESET_ALL or game_board2[row1][col1] == Fore.RED + "X" + Style.RESET_ALL:
                                                     print("¡Jugador 1 ha golpeado un barco!")
                                                     game_board2[row1][col1] = Fore.RED + "X" + Style.RESET_ALL
                                                     acertado1 = json.dumps(acertado)
@@ -591,6 +597,7 @@ while True:
                                                     print("Jugador 1 gana. ¡Felicidades!")
                                                     gano1 = json.dumps(gano)
                                                     UDPServerSocket.sendto(str.encode(gano1), address1)
+                                                    UDPServerSocket.sendto(str.encode(perdio1), direccionP2)
                                                     sys.exit()
                                                     break
 
@@ -639,7 +646,7 @@ while True:
                                             ):
                                                 acertado["position"] = [row2,col2]
                                                 errado["position"] = [row2,col2]
-                                                if game_board1[row2][col2] == Fore.BLUE + "Y" + Style.RESET_ALL:
+                                                if game_board1[row2][col2] == Fore.BLUE + "Y" + Style.RESET_ALL or game_board2[row1][col1] == Fore.RED + "X" + Style.RESET_ALL:
                                                     print("¡Jugador 2 ha golpeado un barco!")
                                                     game_board1[row2][col2] = Fore.RED + "X" + Style.RESET_ALL
                                                     acertado1 = json.dumps(acertado)
