@@ -52,9 +52,9 @@ def can_place_ship_horizontally(board, row, col, size):
             return False
     return True
  """
-xArr = [1,3,4]
-yArr = [1,2,4]
-ori = [1,0,0]
+xArr = [0,0,0]
+yArr = [0,2,4]
+ori = [0,0,0]
 def place_ships3(board):
     ship_sizes = [3, 2, 1]
     iss = 0
@@ -132,9 +132,9 @@ def build_game_board(board):
         board.append(["O"] * 5)
 
 def place_ships(board,bot):
-    place_ship(board, 3, Fore.BLUE + "Y" + Style.RESET_ALL,bot["p"]) #3 casillas
-    place_ship(board, 2, Fore.BLUE + "Y" + Style.RESET_ALL,bot["b"]) #2 casillas
-    place_ship(board, 1, Fore.BLUE + "Y" + Style.RESET_ALL,bot["s"]) #1 casillas
+    place_ship(board, 2, Fore.BLUE + "Y" + Style.RESET_ALL,bot["p"]) #3 casillas
+    place_ship(board, 1, Fore.BLUE + "Y" + Style.RESET_ALL,bot["b"]) #2 casillas
+    place_ship(board, 3, Fore.BLUE + "Y" + Style.RESET_ALL,bot["s"]) #1 casillas
 
 
 def place_ship(board, size, symbol,bot):
@@ -143,8 +143,8 @@ def place_ship(board, size, symbol,bot):
         col = random.randint(0, len(board[0]) - 1)
         orientation = random.choice(["horizontal", "vertical"]) """
 
-        row = bot[1]
-        col = bot[0]
+        row = bot[0]
+        col = bot[1]
 
         if bot[2] == 0:
             orientation = "vertical"
@@ -295,7 +295,7 @@ while True:
                         "action": "b",
                         "bot": "",
                         "ships": {
-                            "p": [xArr[0],yArr[0],1],
+                            "p": [xArr[0],yArr[0],0],
                             "b": [xArr[1],yArr[1],0],
                             "s": [xArr[2],yArr[2],0]
                         }  # Establece las coordenadas jugadas por el usuario
